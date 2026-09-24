@@ -52,7 +52,7 @@ nest-asyncio2==1.7.2
 networkx==3.6.1
 numba==0.67.0
 numcodecs==0.16.5
-numpy==2.4.6
+numpy
 orjson==3.12.0
 pandas==2.3.3
 parso==0.8.7
@@ -75,7 +75,6 @@ pyparsing==3.3.2
 python-dateutil==2.9.0.post0
 python-multipart==0.0.32
 pytz==2026.3.post1
-pyucell==0.7.3
 PyYAML==6.0.3
 pyzmq==27.2.0
 referencing==0.37.0

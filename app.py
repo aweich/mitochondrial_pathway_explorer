@@ -85,6 +85,14 @@ def _gene_panel(path: str, genes: list[str], mean: pd.DataFrame,
                        f"{path}_gene_heatmap", "gene-heatmap")
 
 
+def _parse_custom_genes(text: str, available_genes: pd.Index) -> tuple[list[str], list[str]]:
+    requested = list(dict.fromkeys(gene.strip() for gene in text.split(",") if gene.strip()))
+    available = set(available_genes)
+    present = [gene for gene in requested if gene in available]
+    missing = [gene for gene in requested if gene not in available]
+    return present, missing
+
+
 st.set_page_config(page_title="Mitochondrial pathways", layout="wide")
 st.title("Mitochondrial pathway explorer")
 st.caption("Pre-computed expression and UCell summaries across CD8 T cell subtypes. Based on MitoCarta 3.0 Pathways.")
@@ -95,14 +103,32 @@ except FileNotFoundError:
     st.error(f"Dashboard data not found at {DATA_DIR}. Run dashboard/build_dashboard_data.py first.")
     st.stop()
 
-path = st.selectbox("Pathway", metadata["full_path"].tolist(),
-                    format_func=lambda item: _path_label(item, metadata))
-genes = gene_sets[path]
-st.subheader(_path_label(path, metadata).strip())
-st.write(f"{len(genes)} genes in this pathway; all are shown below.")
+selection_mode = st.radio("Gene set", ["Mitochondrial pathway", "Custom genes"], horizontal=True)
 
-tab_ucell, tab_genes = st.tabs(["UCell heatmap", "Gene expression"])
-with tab_ucell:
-    _ucell_panel(path, ucell)
-with tab_genes:
-    _gene_panel(path, genes, gene_mean, gene_pct, gene_zscore)
+if selection_mode == "Mitochondrial pathway":
+    path = st.selectbox("Pathway", metadata["full_path"].tolist(),
+                        format_func=lambda item: _path_label(item, metadata))
+    genes = gene_sets[path]
+    st.subheader(_path_label(path, metadata).strip())
+    st.write(f"{len(genes)} genes in this pathway; all are shown below.")
+
+    tab_ucell, tab_genes = st.tabs(["UCell heatmap", "Gene expression"])
+    with tab_ucell:
+        _ucell_panel(path, ucell)
+    with tab_genes:
+        _gene_panel(path, genes, gene_mean, gene_pct, gene_zscore)
+else:
+    custom_text = st.text_area(
+        "Genes",
+        placeholder="Enter gene symbols separated by commas, for example: POLG, TFAM, TWNK",
+        help="Only genes present in the precomputed dataset can be displayed.",
+    )
+    custom_genes, missing_genes = _parse_custom_genes(custom_text, gene_mean.index)
+    if missing_genes:
+        st.warning(f"Not found in the data: {', '.join(missing_genes)}")
+    if not custom_genes:
+        st.info("Enter one or more comma-separated gene symbols to display them.")
+    else:
+        st.subheader("Custom gene set")
+        st.write(f"{len(custom_genes)} genes found in the precomputed data.")
+        _gene_panel("custom_genes", custom_genes, gene_mean, gene_pct, gene_zscore)

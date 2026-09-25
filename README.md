@@ -1,7 +1,8 @@
 # Mitochondrial pathway dashboard
 
 Streamlit app for exploring precomputed CD8 T-cell mitochondrial pathway
-expression and UCell scores. Runtime data is in `dashboard_data/`.
+expression and UCell scores. Runtime data is in `dashboard_data/`. The app also
+accepts custom comma-separated gene lists.
 
 ## Run locally
 
@@ -13,7 +14,8 @@ streamlit run app.py
 ## Rebuild data
 
 The input `.h5ad` must contain `adata.obs["cell.type"]` and existing
-`*_UCell` columns. The builder does not calculate UCell scores.
+`*_UCell` columns. The builder does not calculate UCell scores. It saves
+expression summaries for all genes so custom gene lists work after deployment.
 
 ```bash
 python build_dashboard_data.py \

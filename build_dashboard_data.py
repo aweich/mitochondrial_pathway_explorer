@@ -105,7 +105,9 @@ def build_dashboard_data(adata_path: Path, pathway_path: Path,
     cell_types = pd.Index(sorted(adata.obs[cell_type_column].dropna().unique()),
                           name=cell_type_column)
 
-    genes = sorted({gene for gene_set in gene_sets.values() for gene in gene_set})
+    # Keep summaries for the full AnnData gene universe so the hosted app can
+    # accept custom genes without loading AnnData at runtime.
+    genes = sorted(map(str, adata.var_names))
     cell_type_values = adata.obs[cell_type_column].to_numpy()
     gene_mean, gene_pct = _aggregate_expression(
         adata, genes, cell_types, cell_type_values, cell_chunk_size
